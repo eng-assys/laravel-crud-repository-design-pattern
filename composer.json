@@ -1,0 +1,24 @@
+{
+    "name": "eng_assys/laravel-crud-repository-design-pattern",
+    "description": "An implementation of Repository Pattern to separate CRUD Business Logic using Laravel/Lumen 6.*",
+    "version": "0.1.0",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lucas Vinicius dos Santos Assis",
+            "email": "eng.assys@gmail.com",
+            "homepage": "https://www.linkedin.com/in/lucas-assis-81646a58/",
+            "role": "Tech Leader"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LaravelCrudRepository\\": "src"
+        }
+    },
+    "require": {
+        "php": ">=7.2",
+        "spatie/laravel-fractal": "^5.6"
+    }
+}

@@ -1,4 +1,4 @@
-# laravel-crud-repository-pattern
+# laravel-crud-repository-design-pattern
 An implementation of Repository Pattern to separate CRUD Business Logic using Laravel/Lumen 6.*
 
 * Install in your package the library ```"spatie/laravel-fractal": "^5.6"``` to enable Fractal usage

@@ -9,7 +9,9 @@ An implementation of Repository Pattern to separate CRUD Business Logic using La
 
 <?php
 
-namespace LaravelCrudRepository\Repositories\AbstractRepository;
+namespace App\Repositories;
+
+use LaravelCrudRepository\Repositories\AbstractRepository;
 
 use App\Models\Address;
 

@@ -217,4 +217,30 @@ abstract class AbstractRepository
     {
         return $this->modelClass::paginate($pages);
     }
+
+    /**
+     * Update a model if it does not exist; otherwise create it
+     *
+     * @param array $modelArray Parameters to create or update a model
+     * @param array $queryKeys Keys from modelArray to use as search criteria
+     *
+     * @return Model Created Model
+     *
+     */    
+    public function updateOrCreateIfNoneExist(array $modelArray, array $queryKeys)
+    {
+        $criteria = [];
+        
+        foreach ($queryKeys as $queryKey) {
+            $criteria['$queryKey'] = $modelArray[$queryKey];
+        }
+
+        $existentModel = findOneBy($criteria);
+
+        if (isset($existentModel)) {
+            return $this->load($existentModel->uuid)->update($modelArray);
+        } else {
+            return $this->create($modelArray);
+        }
+    }
 }

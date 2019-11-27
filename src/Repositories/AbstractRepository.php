@@ -232,7 +232,7 @@ abstract class AbstractRepository
         $criteria = [];
         
         foreach ($queryKeys as $queryKey) {
-            $criteria['$queryKey'] = $modelArray[$queryKey];
+            $criteria[$queryKey] = $modelArray[$queryKey];
         }
 
         $existentModel = $this->findOneBy($criteria);

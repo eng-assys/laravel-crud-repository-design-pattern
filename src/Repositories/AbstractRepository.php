@@ -235,7 +235,7 @@ abstract class AbstractRepository
             $criteria['$queryKey'] = $modelArray[$queryKey];
         }
 
-        $existentModel = findOneBy($criteria);
+        $existentModel = $this->findOneBy($criteria);
 
         if (isset($existentModel)) {
             return $this->load($existentModel->uuid)->update($modelArray);

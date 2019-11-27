@@ -143,7 +143,7 @@ abstract class AbstractRepository
         return $this->model;
     }
 
-    public function findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+    public function findBy(array $criteria, array $orderBy = [], $limit = null, $offset = null)
     {
         if (empty($criteria)) return null;
 

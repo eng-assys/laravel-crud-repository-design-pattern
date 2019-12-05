@@ -47,6 +47,21 @@ abstract class AbstractRepository
         return $this->modelClass::find($id);
     }
 
+    /**
+     * Find a Model by its ID and load it to $model attribute
+     *
+     * @param integer $id Model Id
+     *
+     * @return mixed $this
+     *
+     */
+    public function findAndLoad($id)
+    {
+        $model = $this->find($id);
+        $this->model = $model;
+        return $this;
+    }
+
     public function index(array $criteria=null, array $orderBy = null, $limit = null, $offset = null)
     {
         if(empty($criteria)) {

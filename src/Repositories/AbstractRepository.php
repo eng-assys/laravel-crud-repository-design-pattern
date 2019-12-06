@@ -20,7 +20,7 @@ abstract class AbstractRepository
     }
 
     /**
-     * Load models to Repository
+     * Find Model by it uuid and Load to Repository
      *
      * @return Model Current Model set to The Repository Class
      *
@@ -30,6 +30,18 @@ abstract class AbstractRepository
         $this->modelClass = empty($modelClass) ? $this->modelClass : $modelClass;
         $this->transformerClass = empty($transformerClass) ? $this->transformerClass : $transformerClass;
         $this->model = $this->modelClass::findUuid($uuid);
+        return $this;
+    }
+
+    /**
+     * @param Model $model Model to be loaded to repository
+     * 
+     * @return Model $model Current Model set to The Repository Class
+     */
+    public function loadModel($model)
+    {
+        $this->model = $model;
+
         return $this;
     }
 
@@ -52,14 +64,14 @@ abstract class AbstractRepository
      *
      * @param integer $id Model Id
      *
-     * @return mixed $this
+     * @return mixed $model Loaded Model
      *
      */
     public function findAndLoad($id)
     {
         $model = $this->find($id);
         $this->model = $model;
-        return $this;
+        return $model;
     }
 
     public function index(array $criteria=null, array $orderBy = null, $limit = null, $offset = null)

@@ -74,7 +74,7 @@ abstract class AbstractRepository
         return $model;
     }
 
-    public function index(array $criteria=null, array $orderBy = null, $limit = null, $offset = null)
+    public function index(array $criteria = null, array $orderBy = [], $limit = null, $offset = null)
     {
         if(empty($criteria)) {
             return $this->findAll();

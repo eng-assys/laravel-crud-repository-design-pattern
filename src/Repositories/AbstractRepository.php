@@ -105,9 +105,9 @@ abstract class AbstractRepository
      * 
      * @return \Illuminate\Pagination\LengthAwarePaginator
      */
-    public function paginate($criteria = [], $itemsPerPage = 10)
+    public function paginate($criteria = [], $itemsPerPage = 10, $customQuery = null)
     {
-        return $this->findBy($criteria ?? [])->paginate($itemsPerPage ?? 10);
+        return $this->findBy($criteria ?? [], [], null, null, $customQuery)->paginate($itemsPerPage ?? 10);
     }
 
     /**
@@ -150,34 +150,35 @@ abstract class AbstractRepository
      * @param array $orderBy properties array used to sort results
      * @param integer $limit To limit the number of results returned from the query
      * @param integer $offset To skip a given number of results in the query
+     * @param \Illuminate\Database\Eloquent\Builder $customQuery used to initialize the transaction
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function findBy(array $criteria, array $orderBy = [], $limit = null, $offset = null)
+    public function findBy(array $criteria, array $orderBy = [], $limit = null, $offset = null, $customQuery = null)
     {
-        $trasaction = new $this->modelClass;
+        $transaction = $customQuery ?? new $this->modelClass;
 
         // criteria array to the query
         foreach ($criteria as $key => $value) {
             if (is_array($value)) {
-                $trasaction = $trasaction->where($value[0], $value[1], $value[2]);
+                $transaction = $transaction->where($value[0], $value[1], $value[2]);
             } else {
-                $trasaction = $trasaction->where($key, $value);
+                $transaction = $transaction->where($key, $value);
             }
         }
 
         // order array to the query
         foreach ($orderBy as $attribute => $order) {
-            $trasaction = $trasaction->orderBy($attribute, $order);
+            $transaction = $transaction->orderBy($attribute, $order);
         }
 
         // number of lines to get
-        $trasaction = isset($limit) ? $trasaction->take($limit) : $trasaction;
+        $transaction = isset($limit) ? $transaction->take($limit) : $transaction;
 
         // start point to the iterator in the database
-        $trasaction = isset($offset) ? $trasaction->skip($offset) : $trasaction;
+        $transaction = isset($offset) ? $transaction->skip($offset) : $transaction;
 
-        return $trasaction;
+        return $transaction;
     }
 
     public function getModelAttributes($hiddenAttributes = [])

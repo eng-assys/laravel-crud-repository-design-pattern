@@ -7,11 +7,19 @@ use Illuminate\Validation\ValidationException;
 
 abstract class AbstractRepository
 {
-    /** @var \Illuminate\Database\Eloquent\Model|null Should contain an Eloquent Model */
+    /** 
+     * @var \Illuminate\Database\Eloquent\Model|null Should contain an Eloquent Model
+     */
     private $model;
-    /** @var string|null Should contain a String with Eloquent Model class Name */
+
+    /**
+     *  @var string|null Should contain a String with Eloquent Model class Name 
+     */
     private $modelClass;
-    /** @var string|null Should contain a String with Transformer class Name To Use Fractal */
+
+    /**
+     * @var string|null Should contain a String with Transformer class Name To Use Fractal
+     */
     private $transformerClass;
 
     public function transformedArray($model)
@@ -19,11 +27,15 @@ abstract class AbstractRepository
         return isset($model) ? fractal($model, new $this->transformerClass)->toArray()['data'] : $model;
     }
 
+    public function transformedPagination($model)
+    {
+        return isset($model) ? fractal($model, new $this->transformerClass) : $model;
+    }
+
     /**
      * Find Model by it uuid and Load to Repository
      *
      * @return Model Current Model set to The Repository Class
-     *
      */
     public function load($uuid, $modelClass = null, $transformerClass = null)
     {
@@ -41,22 +53,15 @@ abstract class AbstractRepository
     public function loadModel($model)
     {
         $this->model = $model;
-
         return $this;
     }
 
     public static function validate($functionParams, $validationParams)
     {
         $validator = Validator::make($functionParams, $validationParams);
-
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
-    }
-
-    public function find($id)
-    {
-        return $this->modelClass::find($id);
     }
 
     /**
@@ -65,7 +70,6 @@ abstract class AbstractRepository
      * @param integer $id Model Id
      *
      * @return mixed $model Loaded Model
-     *
      */
     public function findAndLoad($id)
     {
@@ -74,16 +78,110 @@ abstract class AbstractRepository
         return $model;
     }
 
+    /**
+     * List all model results based on parameters
+     *
+     * @param array $criteria criteria array used to filter results
+     * @param array $orderBy properties array used to sort results
+     * @param integer $limit To limit the number of results returned from the query
+     * @param integer $offset To skip a given number of results in the query
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function index(array $criteria = null, array $orderBy = [], $limit = null, $offset = null)
     {
-        if(empty($criteria)) {
+        if (empty($criteria)) {
             return $this->findAll();
         } else {
-            return $this->findBy($criteria, $orderBy, $limit, $offset);
+            return $this->findBy($criteria, $orderBy, $limit, $offset)->get();
         }
     }
 
-    public function getModelAttributes($hiddenAttributes=[])
+    /**
+     * Paginate model based on criteria
+     *
+     * @param array $criteria criteria array used to filter results
+     * @param integer $itemPerPage number of items per page
+     * 
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function paginate($criteria = [], $itemsPerPage = 10, $customQuery = null)
+    {
+        return $this->findBy($criteria ?? [], [], null, null, $customQuery)->paginate($itemsPerPage ?? 10);
+    }
+
+    /**
+     * To retrieve a single row by your primary key column value
+     * @param mixed $id
+     * 
+     * @return Model
+     */
+    public function find($id)
+    {
+        return $this->modelClass::find($id);
+    }
+
+    /**
+     * List All Models of The Current ModelClass
+     *
+     * @return array(Model)
+     */
+    public function findAll()
+    {
+        return $this->modelClass::all();
+    }
+
+    /**
+     * Get first Model acconding certain Criteria
+     *
+     * @param array $criteria The criteria to find some model
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function findOneBy(array $criteria)
+    {
+        return $this->findBy($criteria)->first();
+    }
+
+    /**
+     * List all model results based on parameters
+     *
+     * @param array $criteria criteria array used to filter results
+     * @param array $orderBy properties array used to sort results
+     * @param integer $limit To limit the number of results returned from the query
+     * @param integer $offset To skip a given number of results in the query
+     * @param \Illuminate\Database\Eloquent\Builder $customQuery used to initialize the transaction
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function findBy(array $criteria, array $orderBy = [], $limit = null, $offset = null, $customQuery = null)
+    {
+        $transaction = $customQuery ?? new $this->modelClass;
+
+        // criteria array to the query
+        foreach ($criteria as $key => $value) {
+            if (is_array($value)) {
+                $transaction = $transaction->where($value[0], $value[1], $value[2]);
+            } else {
+                $transaction = $transaction->where($key, $value);
+            }
+        }
+
+        // order array to the query
+        foreach ($orderBy as $attribute => $order) {
+            $transaction = $transaction->orderBy($attribute, $order);
+        }
+
+        // number of lines to get
+        $transaction = isset($limit) ? $transaction->take($limit) : $transaction;
+
+        // start point to the iterator in the database
+        $transaction = isset($offset) ? $transaction->skip($offset) : $transaction;
+
+        return $transaction;
+    }
+
+    public function getModelAttributes($hiddenAttributes = [])
     {
         $modelAttributes = isset($this->model) ? array_keys($this->model->getAttributes()) : [];
 
@@ -97,22 +195,11 @@ abstract class AbstractRepository
     }
 
     /**
-     * List All Models of The Current ModelClass
-     *
-     * @return array(Model)
-     *
-     */
-    public function findAll()
-    {
-        return $this->modelClass::all();
-    }
-
-    /**
      * Create a new Model
      *
      * @param array $data Required Params to create a new Model
      *
-     * @return Model New Model
+     * @return \Illuminate\Database\Eloquent\Model
      *
      */
     public function create(array $data)
@@ -125,8 +212,7 @@ abstract class AbstractRepository
      *
      * @param array $data Required Params to create a new Model
      *
-     * @return Model New Model
-     *
+     * @return \Illuminate\Database\Eloquent\Model
      */
     public function firstOrCreate(array $data)
     {
@@ -136,8 +222,7 @@ abstract class AbstractRepository
     /**
      * Show Current Model
      *
-     * @return Model Current Model set to The Repository Class
-     *
+     * @return \Illuminate\Database\Eloquent\Model
      */
     public function show()
     {
@@ -149,8 +234,7 @@ abstract class AbstractRepository
      *
      * @param array $data Required Params to update a Model
      *
-     * @return Model Updated Model
-     *
+     * @return \Illuminate\Database\Eloquent\Model Updated Model
      */
     public function update(array $data)
     {
@@ -162,51 +246,11 @@ abstract class AbstractRepository
      * Destroy Current Model
      *
      * @return Model Model before elimination
-     *
      */
     public function delete()
     {
         $this->model->delete();
         return $this->model;
-    }
-
-    public function findBy(array $criteria, array $orderBy = [], $limit = null, $offset = null)
-    {
-        if (empty($criteria)) return null;
-
-        $trasaction = new $this->modelClass;
-        // criteria array to the query
-        foreach ($criteria as $key => $value) {
-            if (is_array($value)) {
-                $trasaction = $trasaction->where($value[0], $value[1], $value[2]);
-            } else {
-                $trasaction = $trasaction->where($key, $value);
-            }
-        }
-
-        // order array to the query
-        foreach ($orderBy as $attribute => $order) {
-            $trasaction = $trasaction->orderBy($attribute, $order);
-        }
-        // number of lines to get
-        $trasaction = isset($limit) ? $trasaction->take($limit) : $trasaction;
-        // start point to the iterator in the database
-        $trasaction = isset($offset) ? $trasaction->skip($offset) : $trasaction;
-
-        return $trasaction->get();
-    }
-
-    /**
-     * Get first Model acconding certain Criteria
-     *
-     * @param array $criteria The criteria to find some model
-     *
-     * @return Model Model Model according criteria
-     *
-     */
-    public function findOneBy(array $criteria)
-    {
-        return $this->findBy($criteria)->first();
     }
 
     // from Doctrine
@@ -233,31 +277,18 @@ abstract class AbstractRepository
     }
 
     /**
-     * Paginate function to this Model
-     *
-     * @param $pages Number of pages to paginate
-     *
-     * @return Collection $collectionPaginated Collection Paginated
-     *
-     */
-    public function paginate($pages)
-    {
-        return $this->modelClass::paginate($pages);
-    }
-
-    /**
      * Update a model if it does not exist; otherwise create it
      *
      * @param array $modelArray Parameters to create or update a model
      * @param array $queryKeys Keys from modelArray to use as search criteria
      *
-     * @return Model Created Model
+     * @return \Illuminate\Database\Eloquent\Model Created Model
      *
      */    
     public function updateOrCreate(array $modelArray, array $queryKeys)
     {
         $criteria = [];
-        
+
         foreach ($queryKeys as $queryKey) {
             $criteria[$queryKey] = $modelArray[$queryKey];
         }

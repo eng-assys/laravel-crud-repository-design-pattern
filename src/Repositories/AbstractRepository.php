@@ -296,7 +296,7 @@ abstract class AbstractRepository
         $existentModel = $this->findOneBy($criteria);
 
         if (isset($existentModel)) {
-            return $this->load($existentModel->uuid)->update($modelArray);
+            return $this->loadModel($existentModel)->update($modelArray);
         } else {
             return $this->create($modelArray);
         }

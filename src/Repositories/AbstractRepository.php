@@ -254,7 +254,7 @@ abstract class AbstractRepository
      * @return Model Created Model
      *
      */    
-    public function updateOrCreateIfNoneExist(array $modelArray, array $queryKeys)
+    public function updateOrCreate(array $modelArray, array $queryKeys)
     {
         $criteria = [];
         

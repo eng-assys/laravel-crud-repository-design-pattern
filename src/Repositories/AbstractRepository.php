@@ -226,7 +226,7 @@ abstract class AbstractRepository
      */
     public function show()
     {
-        return $this->model->refresh();
+        return $this->model;
     }
 
     /**
